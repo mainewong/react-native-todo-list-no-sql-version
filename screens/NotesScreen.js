@@ -1,15 +1,39 @@
 import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import firebase from "../database/firebaseDB"
 
 export default function NotesScreen({ navigation, route }) {
   const [notes, setNotes] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = firebase
+      .firestore()
+      .collection('todos')
+      .onSnapshot((collection) => {
+        const updatedNotes = collection.docs.map((doc) => doc.data());
+        setNotes(updatedNotes);
+      });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+
+  useEffect(() => {
+    const unsubscribe = firebase
+      .firestore()
+      .collection('todos')
+      .onSnapshot((collection) => {
+        const updatedNotes = collection.docs.map((doc) => doc.data())
+        setNotes(updatedNotes)
+      })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
 
   // This is to set up the top right button
   useEffect(() => {
@@ -38,7 +62,7 @@ export default function NotesScreen({ navigation, route }) {
         done: false,
         id: notes.length.toString(),
       };
-      setNotes([...notes, newNote]);
+      firebase.firestore().collection("todos").add(newNote);
     }
   }, [route.params?.text]);
 
