@@ -6,35 +6,6 @@ import firebase from "../database/firebaseDB"
 export default function NotesScreen({ navigation, route }) {
   const [notes, setNotes] = useState([]);
 
-  useEffect(() => {
-    const unsubscribe = firebase
-      .firestore()
-      .collection('todos')
-      .onSnapshot((collection) => {
-        const updatedNotes = collection.docs.map((doc) => doc.data());
-        setNotes(updatedNotes);
-      });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-
-  useEffect(() => {
-    const unsubscribe = firebase
-      .firestore()
-      .collection('todos')
-      .onSnapshot((collection) => {
-        const updatedNotes = collection.docs.map((doc) => doc.data())
-        setNotes(updatedNotes)
-      })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [])
-
   // This is to set up the top right button
   useEffect(() => {
     navigation.setOptions({
@@ -66,6 +37,21 @@ export default function NotesScreen({ navigation, route }) {
     }
   }, [route.params?.text]);
 
+  //
+  useEffect(() => {
+    const unsubscribe = firebase
+      .firestore()
+      .collection('todos')
+      .onSnapshot((collection) => {
+        const updatedNotes = collection.docs.map((doc) => doc.data())
+        setNotes(updatedNotes)
+      })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
+
   function addNote() {
     navigation.navigate("Add Screen");
   }
@@ -74,7 +60,16 @@ export default function NotesScreen({ navigation, route }) {
   function deleteNote(id) {
     console.log("Deleting " + id);
     // To delete that item, we filter out the item we don't want
-    setNotes(notes.filter((item) => item.id !== id));
+    //setNotes(notes.filter((item) => item.id !== id));
+    firebase
+    .firestore()
+    .collection('todos')
+    .where("id", '==', id)
+    .get()
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => doc.ref.delete());
+    });
+
   }
 
   // The function to render each row in our FlatList
